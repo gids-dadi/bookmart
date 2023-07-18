@@ -3,7 +3,7 @@ const authController = require('../controllers/auth.controller.js');
 const router = Router();
 // const auth = require('../middleware/auth');
 
-router.post('/register', authController.signUp);
+router.post("/register", authController.createUser);
 router.post('/login', authController.login);
 router.get('/user', auth, authController.getUser);
 
