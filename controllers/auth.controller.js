@@ -1,87 +1,128 @@
 const User = require("../models/user.model");
+const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
-const createUser = (req, res) => {
+const createUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
 
+  // validate data
   if (!name || !email || !password) {
     res.status(400).json({ msg: "Please enter all fields" });
   }
 
+  // Check for existing Email
   User.findOne({ email }).then((user) => {
     if (user) return res.status(400).json({ msg: "User already exists" });
-
-    const newUser = new User({ name, email, password });
-
-    // Create salt and hash
-    bcrypt.genSalt(10, (err, salt) => {
-      bcrypt.hash(password, salt, (err, hash) => {
-        if (err) throw err;
-        newUser.password = hash;
-        newUser.save().then((user) => {
-          jwt.sign(
-            { id: user._id },
-            config.get("jwtsecret"),
-            { expiresIn: 3600 },
-            (err, token) => {
-              if (err) throw err;
-              res.json({
-                token,
-                user: {
-                  id: user._id,
-                  name: user.name,
-                  email: user.email,
-                },
-              });
-            }
-          );
-        });
-      });
-    });
   });
-};
 
-const login = async (req, res) => {
+  // Create salt and hash
+  const hashedPwd = await bcrypt.hash(password, 10);
+
+  const userObject = { name, email, password: hashedPwd };
+
+  const newUser = await User.create(userObject);
+
+  if (newUser) {
+    res.status(201).json({ message: `New user ${username} created` });
+  } else {
+    res.status(400).json({ message: "User data is invalid" });
+  }
+});
+
+const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     res.status(400).json({ msg: "Please enter all fields" });
   }
-  User.findOne({ email }).then((user) => {
-    if (!user) return res.status(400).json({ msg: "User does not exist" });
 
-    // Validate password
-    bcrypt.compare(password, user.password).then((isMatch) => {
-      if (!isMatch) return res.status(400).json({ msg: "Invalid credentials" });
+  const foundUser = await User.findOne({ email }).exec();
 
-      jwt.sign(
-        { id: user._id },
-        config.get("jwtsecret"),
-        { expiresIn: 3600 },
-        (err, token) => {
-          if (err) throw err;
-          res.json({
-            token,
-            user: {
-              id: user._id,
-              name: user.name,
-              email: user.email,
-            },
-          });
-        }
-      );
-    });
+  if (!foundUser) {
+    return res.status(401).json({ message: "Unauthorized user" });
+  }
+
+  const match = await bcrypt.compare(password, foundUser.password);
+  if (!match) {
+    return res.status(401).json({ message: "Unauthorized user" });
+  }
+  const accessToken = jwt.sign(
+    {
+      UserInfo: {
+        id: foundUser._id,
+        name: foundUser.name,
+        email: foundUser.email,
+      },
+    },
+    process.env.ACCESS_TOKEN_SECRET,
+    { expiresIn: "2m" }
+  );
+
+  const refreshToken = jwt.sign(
+    { name: foundUser.name },
+    process.env.REFRESH_TOKEN_SECRET,
+    { expiresIn: "1d" }
+  );
+
+  res.cookie("jwt", refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   });
-};
+  res.json({ accessToken });
+});
 
-const getUser = (req, res) => {
+const refresh = asyncHandler(async (req, res) => {
+  const cookies = req.cookies;
+  if (!cookies?.jwt) return res.status(401).json({ message: "Unauthorized" });
+
+  const refreshToken = cookies.jwt;
+
+  jwt.verify(
+    refreshToken,
+    process.env.REFRESH_TOKEN_SECRET,
+    asyncHandler(async (err, decoded) => {
+      if (err) return res.status(403).json({ message: "Forbidden" });
+
+      const foundUser = await User.findOne({ name: decoded.name });
+
+      if (!foundUser) return res.status(401).json({ message: "Unauthorized" });
+
+      const accessToken = jwt.sign(
+        {
+          UserInfo: {
+            id: foundUser._id,
+            name: foundUser.name,
+            email: foundUser.email,
+          },
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: "1m" }
+      );
+      res.json({ accessToken });
+    })
+  );
+});
+
+const logout = asyncHandler(async (req, res) => {
+  const cookies = req.cookies;
+
+  if (!cookies?.jwt) return res.sendStatus(204);
+  res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true });
+  res.json({ message: "Cookie cleared" });
+});
+
+const getUser = asyncHandler(async (req, res) => {
   User.findById(req.user.id)
     .select("-password")
     .then((user) => res.json(user));
-};
+});
 
 module.exports = {
   createUser,
   login,
+  refresh,
+  logout,
   getUser,
 };
