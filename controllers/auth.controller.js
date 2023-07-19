@@ -19,12 +19,12 @@ const createUser = asyncHandler(async (req, res) => {
   // Create salt and hash
   const hashedPwd = await bcrypt.hash(password, 10);
 
-  const userObject = { name, email, password: hashedPwd };
+  const userObject = { name, email, password: hashedPwd, role };
 
   const newUser = await User.create(userObject);
 
   if (newUser) {
-    res.status(201).json({ message: `New user ${username} created` });
+    res.status(201).json({ message: `New user ${name} created` });
   } else {
     res.status(400).json({ message: "User data is invalid" });
   }
@@ -52,10 +52,11 @@ const login = asyncHandler(async (req, res) => {
         id: foundUser._id,
         name: foundUser.name,
         email: foundUser.email,
+        role: foundUser.role,
       },
     },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: "2m" }
+    { expiresIn: "30m" }
   );
 
   const refreshToken = jwt.sign(
@@ -66,7 +67,7 @@ const login = asyncHandler(async (req, res) => {
 
   res.cookie("jwt", refreshToken, {
     httpOnly: true,
-    secure: true,
+    // secure: true,
     sameSite: "None",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
@@ -95,6 +96,7 @@ const refresh = asyncHandler(async (req, res) => {
             id: foundUser._id,
             name: foundUser.name,
             email: foundUser.email,
+            role: foundUser.role,
           },
         },
         process.env.ACCESS_TOKEN_SECRET,
@@ -114,7 +116,7 @@ const logout = asyncHandler(async (req, res) => {
 });
 
 const getUser = asyncHandler(async (req, res) => {
-  User.findById(req.user.id)
+  User.findById(req.user)
     .select("-password")
     .then((user) => res.json(user));
 });

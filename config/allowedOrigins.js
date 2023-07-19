@@ -3,3 +3,6 @@ const allowedOrigins = [
   "https://www.bookmart.com",
   "https://bookmart.com",
 ];
+
+
+module.exports = allowedOrigins;

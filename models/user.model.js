@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const roles = require("../config/roles")
+const {roles} = require("../config/roles")
 const Schema = mongoose.Schema;
 const { isEmail } = require("validator");
 
@@ -25,7 +25,7 @@ const UserSchema = new Schema({
 
   role: {
     type: String,
-    enum: roles,
+    enum: roles, //["customer", "admin"],
     default: "customer",
   },
 
