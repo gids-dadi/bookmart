@@ -5,7 +5,7 @@ const router = Router();
 
 
 
-// router.use(verifyJwt);
+router.use(verifyJwt);
 
 router.get("/books", bookController.getBooks);
 router.post("/books", bookController.createBook);
