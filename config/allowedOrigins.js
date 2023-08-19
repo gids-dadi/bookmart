@@ -1,8 +1,3 @@
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://www.bookmart.com",
-  "https://bookmart.com",
-];
-
+const allowedOrigins = ["https://www.bookmart.onrender.com"];
 
 module.exports = allowedOrigins;
