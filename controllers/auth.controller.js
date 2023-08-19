@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
 const createUser = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
 
   // validate data
   if (!name || !email || !password) {
@@ -19,12 +19,12 @@ const createUser = asyncHandler(async (req, res) => {
   // Create salt and hash
   const hashedPwd = await bcrypt.hash(password, 10);
 
-  const userObject = { name, email, password: hashedPwd, role };
+  const userData = { name, email, password: hashedPwd, role };
 
-  const newUser = await User.create(userObject);
-
+  const newUser = await User.create(userData);
+  res.json(newUser);
   if (newUser) {
-    res.status(201).json({ message: `New user ${name} created` });
+    res.json({ user: newUser });
   } else {
     res.status(400).json({ message: "User data is invalid" });
   }
@@ -56,7 +56,7 @@ const login = asyncHandler(async (req, res) => {
       },
     },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: "30m" }
+    { expiresIn: "15m" }
   );
 
   const refreshToken = jwt.sign(
@@ -71,7 +71,7 @@ const login = asyncHandler(async (req, res) => {
     sameSite: "None",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
-  res.json({ accessToken });
+  res.json({ accessToken, user: foundUser });
 });
 
 const refresh = asyncHandler(async (req, res) => {
@@ -118,7 +118,7 @@ const logout = asyncHandler(async (req, res) => {
 const getUser = asyncHandler(async (req, res) => {
   User.findById(req.user)
     .select("-password")
-    .then((user) => res.json(user));
+    .then((user) => res.json({ user }));
 });
 
 module.exports = {

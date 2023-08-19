@@ -2,9 +2,9 @@ const { Router } = require('express');
 const cartController = require('../controllers/cart.controller.js');
 const router = Router();
 
-const verifyJwt = require("../middleware/verifyJwt.js");
+const auth = require("../middleware/auth.js");
 
-router.use(verifyJwt);
+router.use(auth);
 
 router.get('/cart/:id',cartController.getBooksInCart);
 router.post('/cart/:id',cartController.addBookToCart);

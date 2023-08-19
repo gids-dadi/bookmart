@@ -24,19 +24,19 @@ const BookSchema = new Schema({
 
   category: {
     type: String,
-    required: true,
+    default: 'others'
   },
   price: {
     type: Number,
     required: true,
   },
-  
+
   date_added: {
     type: Date,
     default: Date.now,
   },
 });
 
-const Book  = mongoose.model("book", BookSchema);
+const Book = mongoose.model("book", BookSchema);
 
 module.exports = Book;

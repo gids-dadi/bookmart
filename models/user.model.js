@@ -20,12 +20,13 @@ const UserSchema = new Schema({
   password: {
     type: String,
     required: [true, "Please enter a valid password"],
-    minlength: [6, "Minimum password length must be 6 characters"],
+    // minlength: [6, "Minimum password length must be 6 characters"],
   },
 
   role: {
     type: String,
-    enum: roles, //["customer", "admin"],
+    required: true,
+    enum: ["customer", "admin"],
     default: "customer",
   },
 

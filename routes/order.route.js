@@ -2,9 +2,9 @@ const { Router } = require("express");
 const orderController = require("../controllers/order.controller.js");
 const router = Router();
 
-const verifyJwt = require("../middleware/verifyJwt.js");
+const auth = require("../middleware/auth.js");
 
-router.use(verifyJwt);
+// router.use(auth);
 
 router.post("/order/:id", orderController.placeOrder);
 router.get("/order/:id", orderController.getOrder);

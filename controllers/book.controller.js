@@ -1,9 +1,14 @@
-const Book = require('../models/book.model')
+const Book = require("../models/book.model");
 
 const getBooks = (req, res) => {
   Book.find()
     .sort({ date: -1 })
     .then((books) => res.json(books));
+};
+
+const getBook = (req, res) => {
+  Book.findById(req.params.id)
+    .then((book) => res.json(book));
 };
 
 const createBook = (req, res) => {
@@ -21,17 +26,16 @@ const updateBook = (req, res) => {
   });
 };
 
-
 const deleteBook = (req, res) => {
   Book.findByIdAndDelete({ _id: req.params.id }).then(function (book) {
     res.json({ success: true });
   });
 };
 
-
 module.exports = {
   getBooks,
+  getBook,
   createBook,
   updateBook,
-  deleteBook
+  deleteBook,
 };
