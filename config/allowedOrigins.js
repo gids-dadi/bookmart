@@ -1,3 +1,3 @@
-const allowedOrigins = ["https://www.bookmart.onrender.com"];
+const allowedOrigins = ["https://bookmart-lkvf.onrender.com"];
 
 module.exports = allowedOrigins;
