@@ -61,6 +61,44 @@ const addBookToCart = async (req, res) => {
 };
 
 
+const updateCart = async (req, res) => {
+  const userId = req.params.id;
+  const { bookId, quantity  } = req.body;
+
+  try {
+    let cart = await Cart.findOne({ userId });
+    let book = await Book.findOne({ _id: bookId });
+
+    if (!book) {
+      return res.status(404).send('book not found');
+    }
+    if (!cart) {
+      return res.status(400).send('Cart not found');
+    } else {
+      let bookIndex = cart.books.findIndex(i => i.bookId == bookId);
+
+      //check if book exist or not
+      if (bookIndex == -1) {
+        return res.status(404).send('Book not found in cart');
+      } else {
+        let bookItem = cart.books[bookIndex];
+        bookItem.quantity = quantity;
+        cart.books[bookIndex] = bookItem;
+      }
+      cart.bill = cart.books.reduce(
+        (sum, book) => sum + book.price * book.quantity,
+        0
+      );
+      cart = await cart.save();
+      return res.status(201).send(cart);
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send('something went worng!');
+  }
+};
+
+
 const deleteBookInCart = async (req, res) => {
   const userId = req.params.userId;
   const bookId = req.params.bookId;
@@ -82,5 +120,6 @@ const deleteBookInCart = async (req, res) => {
 module.exports = {
   getBooksInCart,
   addBookToCart,
+  updateCart,
   deleteBookInCart,
 };

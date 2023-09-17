@@ -71,7 +71,7 @@ const login = asyncHandler(async (req, res) => {
     sameSite: "None",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
-  res.json({ accessToken, user: foundUser });
+  res.json({ accessToken, userInfo: foundUser });
 });
 
 const refresh = asyncHandler(async (req, res) => {

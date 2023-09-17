@@ -7,8 +7,7 @@ const getBooks = (req, res) => {
 };
 
 const getBook = (req, res) => {
-  Book.findById(req.params.id)
-    .then((book) => res.json(book));
+  Book.findById(req.params.id).then((book) => res.json(book));
 };
 
 const createBook = (req, res) => {
@@ -38,4 +37,4 @@ module.exports = {
   createBook,
   updateBook,
   deleteBook,
-};
+};  

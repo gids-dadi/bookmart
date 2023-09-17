@@ -8,6 +8,7 @@ router.use(auth);
 
 router.get('/cart/:id',cartController.getBooksInCart);
 router.post('/cart/:id',cartController.addBookToCart);
+router.put('/cart/:id',cartController.updateCart);
 router.delete('/cart/:userId/:bookId',cartController.deleteBookInCart);
 
 module.exports = router;

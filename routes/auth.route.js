@@ -9,4 +9,3 @@ router.post("/refresh", authController.refresh);
 router.get("/user", auth, authController.getUser);
 
 module.exports = router;
- 
