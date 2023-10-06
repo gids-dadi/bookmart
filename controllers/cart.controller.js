@@ -1,5 +1,5 @@
-const Cart = require('../models/cart.model')
-const Book = require('../models/book.model')
+const Cart = require("../models/cart.model");
+const Book = require("../models/book.model");
 
 const getBooksInCart = async (req, res) => {
   const userId = req.params.id;
@@ -8,14 +8,13 @@ const getBooksInCart = async (req, res) => {
     if (cart && cart.books.length > 0) {
       res.send(cart);
     } else {
-      res.send(null);
+      res.send({ message: "No book in cart" });
     }
   } catch (err) {
     console.log(err);
     res.status(500).send("Something went wrong");
   }
 };
-
 
 const addBookToCart = async (req, res) => {
   const userId = req.params.id;
@@ -29,6 +28,7 @@ const addBookToCart = async (req, res) => {
     }
     const price = book.price;
     const name = book.title;
+    const image = book.image;
 
     if (cart) {
       // if cart exists for the user
@@ -40,7 +40,7 @@ const addBookToCart = async (req, res) => {
         bookItem.quantity += quantity;
         cart.items[bookIndex] = bookItem;
       } else {
-        cart.books.push({ bookId, name, quantity, price });
+        cart.books.push({ bookId, name, image, quantity, price });
       }
       cart.bill += quantity * price;
       cart = await cart.save();
@@ -60,26 +60,25 @@ const addBookToCart = async (req, res) => {
   }
 };
 
-
 const updateCart = async (req, res) => {
   const userId = req.params.id;
-  const { bookId, quantity  } = req.body;
+  const { bookId, quantity } = req.body;
 
   try {
     let cart = await Cart.findOne({ userId });
     let book = await Book.findOne({ _id: bookId });
 
     if (!book) {
-      return res.status(404).send('book not found');
+      return res.status(404).send("book not found");
     }
     if (!cart) {
-      return res.status(400).send('Cart not found');
+      return res.status(400).send("Cart not found");
     } else {
-      let bookIndex = cart.books.findIndex(i => i.bookId == bookId);
+      let bookIndex = cart.books.findIndex((i) => i.bookId == bookId);
 
       //check if book exist or not
       if (bookIndex == -1) {
-        return res.status(404).send('Book not found in cart');
+        return res.status(404).send("Book not found in cart");
       } else {
         let bookItem = cart.books[bookIndex];
         bookItem.quantity = quantity;
@@ -94,10 +93,9 @@ const updateCart = async (req, res) => {
     }
   } catch (error) {
     console.log(error);
-    res.status(500).send('something went worng!');
+    res.status(500).send("something went worng!");
   }
 };
-
 
 const deleteBookInCart = async (req, res) => {
   const userId = req.params.userId;
